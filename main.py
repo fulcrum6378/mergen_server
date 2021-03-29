@@ -1,16 +1,12 @@
-print("EXPECT THE FUTURE")
+import simple_http_server.server as server
+import socket
 
-from matplotlib import image, pyplot
-import numpy as np
-from PIL import Image
-import skimage as sk
+print("EXPECT THE FUTURE...")
 
-pic = Image.open('vis/1.jpg')
-arr = np.copy(np.asarray(pic))  # VERTICAL; HORIZONTAL; RGB
-
-# Edition
-# arr[1, 1] = np.array([0, 0, 0])
-# pic = Image.fromarray(arr)
-
-pyplot.imshow(pic)
-pyplot.show()
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    server.scan("", "server.py")
+    server.start(host=s.getsockname()[0], port=3772)
+except Exception as e:
+    print("COULD NOT START THE SERVER:", e)
