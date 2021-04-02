@@ -1,12 +1,11 @@
-import simple_http_server.server as server
-import socket
+import asyncio
+import websockets
 
-print("EXPECT THE FUTURE...")
 
-try:
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 80))
-    server.scan("", "server.py")
-    server.start(host=s.getsockname()[0], port=3772)
-except Exception as e:
-    print("COULD NOT START THE SERVER:", e)
+async def hello(websocket, path):
+    await websocket.send("Hiyo Mahdi!")
+
+
+start_server = websockets.serve(hello, "192.168.1.9", 3772)
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()
