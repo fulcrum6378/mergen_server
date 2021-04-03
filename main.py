@@ -7,7 +7,7 @@ import websockets
 import connect_aio
 import connect_bot
 
-mode = "bot"
+mode = "aio"
 
 
 async def connect(websocket, path):
