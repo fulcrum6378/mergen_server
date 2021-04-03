@@ -22,7 +22,7 @@ parser.add_argument("--verbose", "-v", action="count")
 args = parser.parse_args()
 
 
-def main(params: Dict) -> str:
+async def main(params: Dict) -> str:
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
     pc = RTCPeerConnection()
