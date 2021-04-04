@@ -4,23 +4,13 @@ import socket
 import traceback
 import websockets
 
-import connect_aio
-import connect_bot
-
-mode = "aio"
-
 
 async def connect(websocket, path):
     data = await websocket.recv()
     params = json.loads(data)
     print(params)
     try:
-        if mode == "aio":
-            ret = await connect_aio.main(params)
-        elif mode == "bot":
-            ret = await connect_bot.main(params)
-        else:
-            ret = "Hiyo Mahdi!"
+        ret = "Hiyo Mahdi!"
     except Exception as e:
         ret = str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(traceback.format_tb(e.__traceback__))
     print("RESPONSE:", ret)
