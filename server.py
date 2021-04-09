@@ -1,4 +1,4 @@
-from socketserver import BaseRequestHandler, TCPServer
+from socketserver import BaseRequestHandler, StreamRequestHandler, TCPServer
 from threading import Thread
 from traceback import format_tb
 
@@ -19,15 +19,27 @@ class Server(Thread):
         except KeyboardInterrupt:
             self.server.server_close()
 
-    class VideoHandler(BaseRequestHandler):
-        def handle(self):  # recv()'s first parameter is the maximum bytes downloadable (1024 == 1KB)
+    class VideoHandler(StreamRequestHandler):
+        def handle(self):
             try:
-                with open("0.jpg", "wb") as f:
-                    f.write(self.request.recv(1073741824))  # 1GB
+                package = self.request.recv(1073741824)  # 1GB (maximum bytes downloadable)
+                data_size = int(package[:10].strip(b'0'))
+                data = package[10:]
+                while len(data) < data_size:
+                    package = self.request.recv(1073741824)
+                    if not package: break
+                    data += package
+                global time
+                with open("mem/" + str(time) + ".mp4", "wb") as f:
+                    f.write(data)
                     f.close()
+                time += 1
             except Exception as e:
                 print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
     class TextHandler(BaseRequestHandler):  # initiated in every request
         def handle(self):  # self.client_address[0]
             print(str(self.request.recv(1024))[2:-1])
+
+
+time = 0

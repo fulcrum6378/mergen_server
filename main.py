@@ -7,5 +7,5 @@ with socket(AF_INET, SOCK_DGRAM) as s:
     HOST = s.getsockname()[0]
     s.close()
 
-recorder = Server(HOST, 3772, Server.VideoHandler)
+recorder = Server(HOST, 3772, Server.VideoHandler)  # kill $(sudo lsof -t -i:3772)
 recorder.start()
