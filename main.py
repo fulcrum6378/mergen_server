@@ -7,7 +7,5 @@ with socket(AF_INET, SOCK_DGRAM) as s:
     HOST = s.getsockname()[0]
     s.close()
 
-watcher = Server(HOST, 3772, Server.ImageHandler)
-watcher.start()
-# hearer = Server(HOST, 3773, Server.AudioHandler)
-# hearer.start()
+recorder = Server(HOST, 3772, Server.VideoHandler)
+recorder.start()
