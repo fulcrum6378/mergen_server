@@ -1,11 +1,6 @@
-from socket import AF_INET, SOCK_DGRAM, socket
+from dat.server import Server
 
-from server import Server
-
-with socket(AF_INET, SOCK_DGRAM) as s:
-    s.connect(("8.8.8.8", 80))
-    HOST = s.getsockname()[0]
-    s.close()
-
-recorder = Server(HOST, 3772, Server.VideoHandler)  # kill $(sudo lsof -t -i:3772)
-recorder.start()
+vision = Server(3772, Server.ImageHandler)  # kill $(sudo lsof -t -i:3772)
+vision.start()
+hearing = Server(3773, Server.AudioHandler)  # kill $(sudo lsof -t -i:3773)
+hearing.start()
