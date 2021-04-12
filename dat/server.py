@@ -35,7 +35,7 @@ class Server(Thread):
                     if not package: break
                     data += package
                 global iTime
-                with open("mem/tmp/" + str(iTime) + ".jpg", "wb") as f:
+                with open(dTemp + str(iTime) + ".jpg", "wb") as f:
                     f.write(data)
                     f.close()
                 iTime += 1
@@ -54,7 +54,7 @@ class Server(Thread):
                     if not package: break
                     data += package
                 global aTime
-                with open("mem/tmp/" + str(aTime) + ".wav", "wb") as f:
+                with open(dTemp + str(aTime) + ".wav", "wb") as f:
                     f.write(data)
                     f.close()
                 aTime += 1
@@ -68,3 +68,4 @@ class Server(Thread):
 
 iTime = 0
 aTime = 0
+dTemp = "mem/tmp/"
