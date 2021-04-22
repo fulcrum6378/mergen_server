@@ -54,7 +54,7 @@ class Server(Thread):
                     if not package: break
                     data += package
                 global aTime
-                with open(dTemp + str(aTime) + ".wav", "wb") as f:
+                with open(dTemp + str(aTime) + ".m4a", "wb") as f:
                     f.write(data)
                     f.close()
                 aTime += 1
