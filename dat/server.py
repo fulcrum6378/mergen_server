@@ -1,7 +1,9 @@
+import os.path
 from socket import AF_INET, SOCK_DGRAM, socket
 from socketserver import BaseRequestHandler, StreamRequestHandler, TCPServer
 from threading import Thread
 from traceback import format_tb
+import wave
 
 
 class Server(Thread):
@@ -37,7 +39,6 @@ class Server(Thread):
                 global iTime
                 with open(dTemp + str(iTime) + ".jpg", "wb") as f:
                     f.write(data)
-                    f.close()
                 iTime += 1
             except Exception as e:
                 print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
@@ -53,11 +54,14 @@ class Server(Thread):
                     package = self.request.recv(1073741824)
                     if not package: break
                     data += package
-                global aTime
-                with open(dTemp + str(aTime) + ".m4a", "wb") as f:
-                    f.write(data)
-                    f.close()
-                aTime += 1
+                with wave.open(dTemp + wTemp, 'wb') as f:
+                    f.setparams((2, 2, 44100, 0, 'NONE', 'NONE'))
+                    f.writeframes(data)
+                with open(dTemp + wTemp, "rb") as f:
+                    temp_wave = f.read()
+                with open(dTemp + aTemp, "ab") as f:
+                    f.write(temp_wave)
+                os.remove(dTemp + wTemp)
             except Exception as e:
                 print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
@@ -67,5 +71,6 @@ class Server(Thread):
 
 
 iTime = 0
-aTime = 0
 dTemp = "mem/tmp/"
+aTemp = "audio.wav"
+wTemp = "temp.wav"
