@@ -1,10 +1,13 @@
-import os.path
+import os, os.path
+import signal
 from socket import AF_INET, SOCK_DGRAM, socket
 from socketserver import BaseRequestHandler, StreamRequestHandler, TCPServer
 from threading import Thread
+from time import sleep
 from traceback import format_tb
 import wave
 
+import moviepy.editor as mpy
 import numpy as np
 import soundfile as sf
 
@@ -30,6 +33,7 @@ class Server(Thread):
 
     class ImageHandler(StreamRequestHandler):
         def handle(self):
+            started()
             try:
                 package = self.request.recv(1073741824)  # 1GB (maximum bytes downloadable)
                 if str(package) == "b''" or str(package) == "b'0000000000'": return
@@ -48,6 +52,7 @@ class Server(Thread):
 
     class AudioHandler(StreamRequestHandler):
         def handle(self):
+            started()
             try:
                 package = self.request.recv(1073741824)  # 1GB (maximum bytes downloadable)
                 if str(package) == "b''" or str(package) == "b'0000000000'": return
@@ -77,11 +82,42 @@ class Server(Thread):
 
 iTime = aTime = 0
 dTemp = "mem/tmp/"
+aTemp = "audio.wav"
 audio = None
 sample_rate = 0
+ending = None
 
 
 def extractAudio():
-    global dTemp, audio, sample_rate
+    global aTemp, dTemp, audio, sample_rate
     if audio is not None:
-        sf.write(dTemp + "audio.wav", audio, sample_rate)
+        sf.write(dTemp + aTemp, audio, sample_rate)
+
+
+class Exit(Thread):
+    def __init__(self, out: int = 7):
+        super().__init__()
+        self.out = out
+
+    def run(self) -> None:
+        sleep(self.out)
+        extractAudio()
+
+        global aTemp, dTemp
+        seq = list()
+        for i in os.listdir(dTemp):
+            if i.endswith(".wav"): continue
+            seq.append(dTemp + i)
+        seq.sort()
+        clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
+        clip.audio = (mpy.AudioFileClip(dTemp + aTemp).set_duration(clip.duration))
+        clip.write_videofile("mem/0.mp4")
+
+        os.kill(os.getpid(), signal.SIGTERM)
+
+
+def started() -> None:
+    global ending
+    if ending is not None: return
+    ending = Exit()
+    ending.start()
