@@ -5,6 +5,9 @@ from threading import Thread
 from traceback import format_tb
 import wave
 
+import numpy as np
+import soundfile as sf
+
 
 class Server(Thread):
     def __init__(self, port: int, handler):
@@ -36,7 +39,7 @@ class Server(Thread):
                     package = self.request.recv(1073741824)
                     if not package: break
                     data += package
-                global iTime
+                global dTemp, iTime
                 with open(dTemp + str(iTime) + ".jpg", "wb") as f:
                     f.write(data)
                 iTime += 1
@@ -54,14 +57,16 @@ class Server(Thread):
                     package = self.request.recv(1073741824)
                     if not package: break
                     data += package
-                with wave.open(dTemp + wTemp, 'wb') as f:
-                    f.setparams((2, 2, 44100, 0, 'NONE', 'NONE'))
-                    f.writeframes(data)
-                with open(dTemp + wTemp, "rb") as f:
-                    temp_wave = f.read()
-                with open(dTemp + aTemp, "ab") as f:
-                    f.write(temp_wave)
-                os.remove(dTemp + wTemp)
+                global audio, sample_rate, aTime, dTemp
+                last_time = str(aTime)
+                wTemp = dTemp + "temp" + last_time + ".wav"
+                with wave.open(wTemp, 'wb') as f:
+                    f.setparams((1, 2, 44100, 0, 'NONE', 'NONE'))
+                    f.writeframesraw(data)
+                arr, sample_rate = sf.read(wTemp)
+                audio = np.concatenate((audio, arr)) if audio is not None else arr
+                del arr
+                os.remove(wTemp)
             except Exception as e:
                 print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
@@ -70,7 +75,13 @@ class Server(Thread):
             print(str(self.request.recv(1024))[2:-1])
 
 
-iTime = 0
+iTime = aTime = 0
 dTemp = "mem/tmp/"
-aTemp = "audio.wav"
-wTemp = "temp.wav"
+audio = None
+sample_rate = 0
+
+
+def extractAudio():
+    global dTemp, audio, sample_rate
+    if audio is not None:
+        sf.write(dTemp + "audio.wav", audio, sample_rate)
