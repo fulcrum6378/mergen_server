@@ -16,5 +16,9 @@ class Server(Process):
         self.handler: Type[BaseRequestHandler] = handler
 
     def run(self) -> None:
-        print("RUNNING SOCKET SERVER AT", self.host + ":" + str(self.port))
+        print("BEGAN LISTENING AT", self.host + ":" + str(self.port))
         self.server = TCPServer((self.host, self.port), self.handler)
+
+    def kill(self) -> None:
+        print("ENDED LISTENING AT", self.host + ":" + str(self.port))
+        Process.kill(self)
