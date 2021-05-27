@@ -9,6 +9,7 @@ import soundfile as sf
 from com.receiver import AudioHandler, ImageHandler, aTemp, dTemp, audio, sample_rate
 from com.server import Server
 
+defPort, conPort, visPort, earPort = 3772, 0, 1, 2
 vision: Optional[Server] = None
 hearing: Optional[Server] = None
 
@@ -17,7 +18,7 @@ def see(b=True) -> None:
     global vision, hearing
     if b:
         if vision is not None: return
-        vision = Server(3773, ImageHandler)
+        vision = Server(defPort + visPort, ImageHandler)
         vision.start()
     elif vision is not None:
         if vision.server is not None:
@@ -31,7 +32,7 @@ def hear(b=True) -> None:
     global vision, hearing
     if b:
         if hearing is not None: return
-        hearing = Server(3774, AudioHandler)
+        hearing = Server(defPort + earPort, AudioHandler)
         hearing.start()
     elif hearing is not None:
         if hearing.server is not None:
@@ -71,7 +72,7 @@ class Control(BaseRequestHandler):
 
 class Controller(Server):
     def __init__(self):
-        Server.__init__(self, 3772, Control)
+        Server.__init__(self, defPort + conPort, Control)
 
     def run(self) -> None:
         Server.run(self)
