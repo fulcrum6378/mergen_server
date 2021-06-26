@@ -1,4 +1,5 @@
 import os
+from signal import SIGTERM
 from socketserver import BaseRequestHandler
 from time import sleep
 from typing import Optional
@@ -68,6 +69,9 @@ class Control(BaseRequestHandler):
         elif note == "stop":
             see(False)
             hear(False)
+        elif note == "kill":
+            print("RECEIVED KILL COMMAND!!")
+            os.kill(os.getpid(), SIGTERM)
 
 
 class Controller(Server):
@@ -76,6 +80,10 @@ class Controller(Server):
 
     def run(self) -> None:
         Server.run(self)
+        if not os.path.isdir("mem"):
+            os.mkdir("mem")
+        if not os.path.isdir("mem/tmp"):
+            os.mkdir("mem/tmp")
         try:
             self.server.serve_forever()
         except KeyboardInterrupt:
