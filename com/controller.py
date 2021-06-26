@@ -1,6 +1,7 @@
 import os
 from signal import SIGTERM
 from socketserver import BaseRequestHandler
+import subprocess as sp
 from time import sleep
 from typing import Optional
 
@@ -54,10 +55,10 @@ def extract():
         if i.endswith(".wav"): continue
         seq.append(dTemp + i)
     seq.sort()
-    if len(seq) > 0:
-        clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
-        clip.audio = (mpy.AudioFileClip(dTemp + aTemp).set_duration(clip.duration))
-        clip.write_videofile("mem/0.mp4")
+    # if len(seq) > 0:
+    # clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
+    # clip.audio = (mpy.AudioFileClip(dTemp + aTemp).set_duration(clip.duration))
+    # clip.write_videofile("mem/0.mp4")
 
 
 class Control(BaseRequestHandler):
@@ -73,7 +74,7 @@ class Control(BaseRequestHandler):
             hear(False)
         elif note == "kill":
             print("RECEIVED KILL COMMAND!!")
-            os.kill(os.getpid(), SIGTERM)
+            Controller.killAll(True)
 
 
 class Controller(Server):
@@ -86,3 +87,11 @@ class Controller(Server):
         if not os.path.isdir("mem/tmp"):
             os.mkdir("mem/tmp")
         Server.run(self)
+
+    @staticmethod
+    def killAll(yourself: bool = False) -> sp.Popen:
+        killer = sp.Popen("kill.bat", shell=True)
+        if yourself:
+            killer.wait()
+            os.kill(os.getpid(), SIGTERM)
+        return killer

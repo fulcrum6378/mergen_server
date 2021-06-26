@@ -1,10 +1,7 @@
 import errno
 from multiprocessing import Process
-import os
-import signal
 from socket import AF_INET, SOCK_DGRAM, SOCK_STREAM, error, socket
 from socketserver import BaseRequestHandler, TCPServer
-import subprocess as sp
 from typing import Optional, Type
 
 
@@ -19,7 +16,6 @@ class Server(Process):
         self.server: Optional[TCPServer] = None
         self.handler: Type[BaseRequestHandler] = handler
         self.active = False
-        sp.run("com/kill.bat " + str(self.port), shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
 
     def run(self) -> None:
         self.server = TCPServer((self.host, self.port), self.handler)
@@ -32,22 +28,24 @@ class Server(Process):
         Process.kill(self)
         self.check()
 
-    def check(self) -> None:
+    def check(self, echo: bool = True) -> None:
         s = socket(AF_INET, SOCK_STREAM)
         try:
             s.bind((self.host, self.port))
-            if not self.active:
-                print("BEGAN LISTENING AT", self.host + ":" + str(self.port))
-            else:
-                print("PORT", self.port, "ALREADY IN USE!")
+            if echo:
+                if not self.active:
+                    print("BEGAN LISTENING AT", self.host + ":" + str(self.port))
+                else:
+                    print("PORT", self.port, "ALREADY IN USE!")
             self.active = True
         except error as e:
-            if self.active:
-                print("ENDED LISTENING AT", self.host + ":" + str(self.port))
-            else:
-                if e.errno == errno.EADDRINUSE:
-                    print("PORT", self.port, "ALREADY IN USE!")
+            if echo:
+                if self.active:
+                    print("ENDED LISTENING AT", self.host + ":" + str(self.port))
                 else:
-                    print(e)
+                    if e.errno == errno.EADDRINUSE:
+                        print("PORT", self.port, "ALREADY IN USE!")
+                    else:
+                        print(e)
             self.active = False
         s.close()

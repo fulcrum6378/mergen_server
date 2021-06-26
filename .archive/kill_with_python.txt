@@ -6,3 +6,10 @@ if res != b"":
         os.kill(pid, signal.SIGTERM)  # Not certain about second parameter
     except Exception as e:
         print(e)
+
+
+
+OR
+
+
+sp.Popen("\"com/kill.bat\" " + str(self.port), shell=True)
