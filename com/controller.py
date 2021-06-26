@@ -21,6 +21,7 @@ def see(b=True) -> None:
         if vision is not None: return
         vision = Server(defPort + visPort, ImageHandler)
         vision.start()
+        vision.check()
     elif vision is not None:
         if vision.server is not None:
             vision.server.shutdown()
@@ -35,6 +36,7 @@ def hear(b=True) -> None:
         if hearing is not None: return
         hearing = Server(defPort + earPort, AudioHandler)
         hearing.start()
+        hearing.check()
     elif hearing is not None:
         if hearing.server is not None:
             hearing.server.shutdown()
@@ -79,12 +81,8 @@ class Controller(Server):
         Server.__init__(self, defPort + conPort, Control)
 
     def run(self) -> None:
-        Server.run(self)
         if not os.path.isdir("mem"):
             os.mkdir("mem")
         if not os.path.isdir("mem/tmp"):
             os.mkdir("mem/tmp")
-        try:
-            self.server.serve_forever()
-        except KeyboardInterrupt:
-            self.server.server_close()
+        Server.run(self)
