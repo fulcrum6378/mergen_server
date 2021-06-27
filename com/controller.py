@@ -55,10 +55,11 @@ def extract():
         if i.endswith(".wav"): continue
         seq.append(dTemp + i)
     seq.sort()
-    # if len(seq) > 0:
-    # clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
-    # clip.audio = (mpy.AudioFileClip(dTemp + aTemp).set_duration(clip.duration))
-    # clip.write_videofile("mem/0.mp4")
+    # TODO: This'll give an error
+    if len(seq) > 0:
+        clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
+        clip.audio = (mpy.AudioFileClip(dTemp + aTemp).set_duration(clip.duration))
+        clip.write_videofile("mem/0.mp4")
 
 
 class Control(BaseRequestHandler):
