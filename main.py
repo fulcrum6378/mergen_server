@@ -7,5 +7,3 @@ if __name__ == "__main__":
     controller = Controller()
     controller.start()
     controller.check()
-
-# TODO: The sockets start listening successfully; but the Android cannot detect them.

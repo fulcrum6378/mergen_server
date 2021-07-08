@@ -55,3 +55,5 @@ class AudioHandler(StreamRequestHandler):
             os.remove(wTemp)
         except Exception as e:
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
+
+# Kaspersky will try to block these connections!
