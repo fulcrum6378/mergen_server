@@ -6,15 +6,11 @@ from time import sleep
 from typing import Optional
 
 import moviepy.editor as mpy
+from PIL import ImageFile
 import soundfile as sf
 
-from com.receiver import AudioHandler, ImageHandler, aTemp, dTemp, audio, sample_rate
+from com.receiver import AudioHandler, ImageHandler, aTemp, dTemp, audio, root, sample_rate
 from com.server import Server
-
-defPort, conPort, visPort, earPort = 3772, 0, 1, 2
-mem = os.path.join(os.path.dirname(__file__), "mem")
-vision: Optional[Server] = None
-hearing: Optional[Server] = None
 
 
 def see(b=True) -> None:
@@ -83,6 +79,7 @@ class Controller(Server):
         Server.__init__(self, defPort + conPort, Control)
 
     def run(self) -> None:
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
         if not os.path.isdir(mem):
             os.mkdir(mem)
         if not os.path.isdir(dTemp):
@@ -91,11 +88,14 @@ class Controller(Server):
 
     @staticmethod
     def killAll(yourself: bool = False) -> sp.Popen:
-        root = os.path.dirname(__file__)
-        if os.path.basename(root) != "mergen":
-            root = os.path.dirname(root)
-        killer = sp.Popen(os.path.join(root, "kill.bat"), shell=True)
+        killer = sp.Popen(os.path.join(root(), "kill.bat"), shell=True)
         if yourself:
             killer.wait()
             os.kill(os.getpid(), SIGTERM)
         return killer
+
+
+defPort, conPort, visPort, earPort = 3772, 0, 1, 2
+mem = os.path.join(root(), "mem")
+vision: Optional[Server] = None
+hearing: Optional[Server] = None

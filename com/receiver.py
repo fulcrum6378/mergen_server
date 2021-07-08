@@ -6,12 +6,6 @@ import wave
 import numpy as np
 import soundfile as sf
 
-iTime = aTime = 0
-dTemp = os.path.join(os.path.dirname(__file__), "mem", "tmp")
-aTemp = "audio.wav"
-audio = None
-sample_rate = 0
-
 
 class ImageHandler(StreamRequestHandler):
     def handle(self):
@@ -25,7 +19,7 @@ class ImageHandler(StreamRequestHandler):
                 if not package: break
                 data += package
             global dTemp, iTime
-            with open(dTemp + str(iTime) + ".jpg", "wb") as f:
+            with open(os.path.join(dTemp, str(iTime) + ".jpg"), "wb") as f:
                 f.write(data)
             iTime += 1
         except Exception as e:
@@ -45,7 +39,7 @@ class AudioHandler(StreamRequestHandler):
                 data += package
             global audio, sample_rate, aTime, dTemp
             last_time = str(aTime)
-            wTemp = dTemp + last_time + ".wav"
+            wTemp = os.path.join(dTemp, last_time + ".wav")
             with wave.open(wTemp, 'wb') as f:
                 f.setparams((1, 2, 44100, 0, 'NONE', 'NONE'))
                 f.writeframesraw(data)
@@ -55,5 +49,22 @@ class AudioHandler(StreamRequestHandler):
             os.remove(wTemp)
         except Exception as e:
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
+
+
+def root():
+    r = os.path.dirname(__file__)
+    for _ in range(5):
+        if os.path.basename(r) != "mergen":
+            r = os.path.dirname(r)
+    if os.path.basename(r) != "mergen":
+        raise Exception("Can't find the root folder!")
+    return r
+
+
+iTime = aTime = 0
+dTemp = os.path.join(root(), "mem", "tmp")
+aTemp = "audio.wav"
+audio = None
+sample_rate = 0
 
 # Kaspersky will try to block these connections!
