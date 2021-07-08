@@ -7,7 +7,7 @@ import numpy as np
 import soundfile as sf
 
 iTime = aTime = 0
-dTemp = "mem/tmp/"
+dTemp = os.path.join(os.path.dirname(__file__), "mem", "tmp")
 aTemp = "audio.wav"
 audio = None
 sample_rate = 0
@@ -45,7 +45,7 @@ class AudioHandler(StreamRequestHandler):
                 data += package
             global audio, sample_rate, aTime, dTemp
             last_time = str(aTime)
-            wTemp = dTemp + "temp" + last_time + ".wav"
+            wTemp = dTemp + last_time + ".wav"
             with wave.open(wTemp, 'wb') as f:
                 f.setparams((1, 2, 44100, 0, 'NONE', 'NONE'))
                 f.writeframesraw(data)

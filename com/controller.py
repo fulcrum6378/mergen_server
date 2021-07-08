@@ -1,4 +1,4 @@
-import os
+import os, os.path
 from signal import SIGTERM
 from socketserver import BaseRequestHandler
 import subprocess as sp
@@ -12,6 +12,7 @@ from com.receiver import AudioHandler, ImageHandler, aTemp, dTemp, audio, sample
 from com.server import Server
 
 defPort, conPort, visPort, earPort = 3772, 0, 1, 2
+mem = os.path.join(os.path.dirname(__file__), "mem")
 vision: Optional[Server] = None
 hearing: Optional[Server] = None
 
@@ -48,18 +49,17 @@ def hear(b=True) -> None:
 
 def extract():
     if audio is not None:
-        sf.write(dTemp + aTemp, audio, sample_rate)
+        sf.write(os.path.join(dTemp, aTemp), audio, sample_rate)
 
     seq = list()
     for i in os.listdir(dTemp):
         if i.endswith(".wav"): continue
-        seq.append(dTemp + i)
+        seq.append(os.path.join(dTemp, i))
     seq.sort()
-    # TODO: This'll give an error
     if len(seq) > 0:
         clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
-        clip.audio = (mpy.AudioFileClip(dTemp + aTemp).set_duration(clip.duration))
-        clip.write_videofile("mem/0.mp4")
+        clip.audio = (mpy.AudioFileClip(os.path.join(dTemp, aTemp)).set_duration(clip.duration))
+        clip.write_videofile(os.path.join(mem, "0.mp4"))
 
 
 class Control(BaseRequestHandler):
@@ -83,15 +83,18 @@ class Controller(Server):
         Server.__init__(self, defPort + conPort, Control)
 
     def run(self) -> None:
-        if not os.path.isdir("mem"):
-            os.mkdir("mem")
-        if not os.path.isdir("mem/tmp"):
-            os.mkdir("mem/tmp")
+        if not os.path.isdir(mem):
+            os.mkdir(mem)
+        if not os.path.isdir(dTemp):
+            os.mkdir(dTemp)
         Server.run(self)
 
     @staticmethod
     def killAll(yourself: bool = False) -> sp.Popen:
-        killer = sp.Popen("kill.bat", shell=True)
+        root = os.path.dirname(__file__)
+        if os.path.basename(root) != "mergen":
+            root = os.path.dirname(root)
+        killer = sp.Popen(os.path.join(root, "kill.bat"), shell=True)
         if yourself:
             killer.wait()
             os.kill(os.getpid(), SIGTERM)
