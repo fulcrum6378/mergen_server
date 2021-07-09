@@ -38,22 +38,25 @@ class AudioHandler(StreamRequestHandler):
                 if not package: break
                 data += package
             global audio, sample_rate, aTime, dTemp
-            with open(os.path.join(dTemp, aTemp), "ab") as f:
-                f.write(data)
-            #last_time = str(aTime)
-            #fTemp = os.path.join(dTemp, last_time + ".wav")
-            #with wave.open(fTemp, 'wb') as f:
-            #    f.setparams((1, 2, 44100, 0, 'NONE', 'NONE'))
-            #    f.writeframesraw(data)
+            #with open(os.path.join(dTemp, aTemp), "ab") as f:
+            #    f.write(data)
+
+            last_time = str(aTime)
+            fTemp = os.path.join(dTemp, last_time + ".wav")
+            with wave.open(fTemp, 'wb') as f:
+                f.setparams((1, 2, 44100, 0, 'NONE', 'NONE'))
+                f.writeframes(data)
             #with sf.SoundFile(os.path.join(dTemp, last_time + ".m4a"), 'w+', 44100, 1, 'PCM_16') as f:
             #    f.buffer_write(data, )
             #arr, sample_rate = sf.read(fTemp)
             #audio = np.concatenate((audio, arr)) if audio is not None else arr
             #del arr
             #os.remove(wTemp)
+            aTime += 1
         except Exception as e:
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
+# TODO: In Android, record audio in 5 seconds audio files.
 
 def root():
     r = os.path.dirname(__file__)
