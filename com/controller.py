@@ -46,7 +46,7 @@ def hear(b=True) -> None:
 def extract():
     if audio is not None:
         sf.write(os.path.join(dTemp, aTemp), audio, sample_rate)
-
+    return
     seq = list()
     for i in os.listdir(dTemp):
         if i.endswith(".wav"): continue
