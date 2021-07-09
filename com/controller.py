@@ -7,9 +7,10 @@ from typing import Optional
 
 import moviepy.editor as mpy
 from PIL import ImageFile
+import numpy as np
 import soundfile as sf
 
-from com.receiver import AudioHandler, ImageHandler, aTemp, dTemp, audio, root, sample_rate
+from com.receiver import AudioHandler, ImageHandler, aExt, dTemp, pExt, root, sample_rate
 from com.server import Server
 
 
@@ -44,18 +45,25 @@ def hear(b=True) -> None:
 
 
 def extract():
-    if audio is not None:
-        sf.write(os.path.join(dTemp, aTemp), audio, sample_rate)
-    return
-    seq = list()
+    ear, vis = list(), list()
     for i in os.listdir(dTemp):
-        if i.endswith(".wav"): continue
-        seq.append(os.path.join(dTemp, i))
-    seq.sort()
-    if len(seq) > 0:
-        clip = mpy.ImageSequenceClip(seq, fps=5)  # 20
-        clip.audio = (mpy.AudioFileClip(os.path.join(dTemp, aTemp)).set_duration(clip.duration))
-        clip.write_videofile(os.path.join(mem, "0.mp4"))
+        if i.endswith(aExt):
+            ear.append(os.path.join(dTemp, i))
+        elif i.endswith(pExt):
+            vis.append(os.path.join(dTemp, i))
+    ear.sort()
+    vis.sort()
+    if len(ear) == 0 or len(vis) == 0: return
+    data = np.array([])
+    for w in ear:
+        data = np.concatenate((data, sf.read(w)[0]))
+        os.remove(w)
+    sf.write(aTemp, data, sample_rate)
+
+    # Store everything as a movie
+    clip = mpy.ImageSequenceClip(vis, fps=20)
+    clip.audio = (mpy.AudioFileClip(aTemp).set_duration(clip.duration))
+    clip.write_videofile(os.path.join(mem, "0.mp4"))
 
 
 class Control(BaseRequestHandler):
@@ -97,5 +105,6 @@ class Controller(Server):
 
 defPort, conPort, visPort, earPort = 3772, 0, 1, 2
 mem = os.path.join(root(), "mem")
+aTemp = os.path.join(dTemp, "audio" + aExt)
 vision: Optional[Server] = None
 hearing: Optional[Server] = None
