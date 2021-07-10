@@ -57,7 +57,7 @@ def extract():
     data = np.array([])
     for w in ear:
         data = np.concatenate((data, sf.read(w)[0]))
-        os.remove(w)
+        # os.remove(w)
     sf.write(aTemp, data, sample_rate)
 
     # Store everything as a movie

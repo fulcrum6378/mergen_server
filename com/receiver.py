@@ -7,12 +7,12 @@ import wave
 class ImageHandler(StreamRequestHandler):
     def handle(self):
         try:
-            package = self.request.recv(1073741824)  # 1GB (maximum bytes downloadable)
+            package = self.request.recv(10485760)  # 10MB: maximum bytes downloadable
             if str(package) == "b''" or str(package) == "b'0000000000'": return
             data_size = int(package[:10].strip(b'0'))
             data = package[10:]
             while len(data) < data_size:
-                package = self.request.recv(1073741824)
+                package = self.request.recv(10485760)
                 if not package: break
                 data += package
             global dTemp, iTime
