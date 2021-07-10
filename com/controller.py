@@ -92,11 +92,14 @@ class Controller(Server):
             os.mkdir(mem)
         if not os.path.isdir(dTemp):
             os.mkdir(dTemp)
+        else:
+            for d in os.listdir(dTemp):
+                os.remove(os.path.join(dTemp, d))
         Server.run(self)
 
     @staticmethod
     def killAll(yourself: bool = False) -> sp.Popen:
-        killer = sp.Popen(os.path.join(root(), "kill.bat"), shell=True)
+        killer = sp.Popen(os.path.join(root(), "com", "kill.bat"), shell=True)
         if yourself:
             killer.wait()
             os.kill(os.getpid(), SIGTERM)
