@@ -1,4 +1,4 @@
-from com.controller import Controller
+from man.controller import Controller
 
 if __name__ == "__main__":
     # First pause the anti-virus!
