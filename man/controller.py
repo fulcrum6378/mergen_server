@@ -5,13 +5,12 @@ import subprocess as sp
 from time import sleep
 from typing import Optional
 
-import moviepy.editor as mpy
 from PIL import ImageFile
 import numpy as np
 import soundfile as sf
 
-from com.receiver import AudioHandler, ImageHandler, aExt, dTemp, pExt, root, sample_rate
-from com.server import Server
+from man.receiver import AudioHandler, ImageHandler, aExt, dTemp, pExt, root, sample_rate
+from man.server import Server
 
 
 def see(b=True) -> None:
@@ -61,9 +60,9 @@ def extract():
     sf.write(aTemp, data, sample_rate)
 
     # Store everything as a movie
-    clip = mpy.ImageSequenceClip(vis, fps=20)
-    clip.audio = (mpy.AudioFileClip(aTemp).set_duration(clip.duration))
-    clip.write_videofile(os.path.join(mem, "0.mp4"))
+    # clip = mpy.ImageSequenceClip(vis, fps=20)
+    # clip.audio = (mpy.AudioFileClip(aTemp).set_duration(clip.duration))
+    # clip.write_videofile(os.path.join(mem, "0.mp4"))
 
 
 class Control(BaseRequestHandler):
