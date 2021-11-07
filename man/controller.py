@@ -13,6 +13,45 @@ from man.receiver import AudioHandler, ImageHandler, aExt, dTemp, pExt, root, sa
 from man.server import Server
 
 
+class Controller(Server):
+    def __init__(self):
+        Server.__init__(self, defPort + conPort, ControlHandler)
+
+    def run(self) -> None:
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
+        if not os.path.isdir(mem):
+            os.mkdir(mem)
+        if not os.path.isdir(dTemp):
+            os.mkdir(dTemp)
+        else:
+            for d in os.listdir(dTemp):
+                os.remove(os.path.join(dTemp, d))
+        Server.run(self)
+
+    @staticmethod
+    def killAll(yourself: bool = False) -> sp.Popen:
+        killer = sp.Popen(os.path.join(root(), "man", "kill.bat"), shell=True)
+        if yourself:
+            killer.wait()
+            os.kill(os.getpid(), SIGTERM)
+        return killer
+
+
+class ControlHandler(BaseRequestHandler):
+    def handle(self):  # self.client_address[0]
+        note = str(self.request.recv(1024))[2:-1]
+        if note == "start":
+            see()
+            hear()
+            sleep(1)
+            self.request.sendall(b"true")
+        elif note == "stop":
+            see(False)
+            hear(False)
+        elif note == "kill":
+            Controller.killAll(True)
+
+
 def see(b=True) -> None:
     global vision, hearing
     if b:
@@ -32,7 +71,7 @@ def hear(b=True) -> None:
     global vision, hearing
     if b:
         if hearing is not None: return
-        hearing = Server(defPort + earPort, AudioHandler)
+        hearing = Server(defPort + audPort, AudioHandler)
         hearing.start()
         hearing.check()
     elif hearing is not None:
@@ -44,68 +83,23 @@ def hear(b=True) -> None:
 
 
 def extract():
-    ear, vis = list(), list()
+    aud, vis = list(), list()
     for i in os.listdir(dTemp):
         if i.endswith(aExt):
-            ear.append(os.path.join(dTemp, i))
+            aud.append(os.path.join(dTemp, i))
         elif i.endswith(pExt):
             vis.append(os.path.join(dTemp, i))
-    ear.sort()
+    aud.sort()
     vis.sort()
-    if len(ear) == 0 or len(vis) == 0: return
+    if len(aud) == 0 or len(vis) == 0: return
     data = np.array([])
-    for w in ear:
+    for w in aud:
         data = np.concatenate((data, sf.read(w)[0]))
         # os.remove(w)
     sf.write(aTemp, data, sample_rate)
 
-    # Store everything as a movie
-    # clip = mpy.ImageSequenceClip(vis, fps=20)
-    # clip.audio = (mpy.AudioFileClip(aTemp).set_duration(clip.duration))
-    # clip.write_videofile(os.path.join(mem, "0.mp4"))
 
-
-class Control(BaseRequestHandler):
-    def handle(self):  # self.client_address[0]
-        note = str(self.request.recv(1024))[2:-1]
-        if note == "start":
-            see()
-            hear()
-            sleep(1)
-            self.request.sendall(b"true")
-        elif note == "stop":
-            see(False)
-            hear(False)
-        elif note == "kill":
-            print("RECEIVED KILL COMMAND!!")
-            Controller.killAll(True)
-
-
-class Controller(Server):
-    def __init__(self):
-        Server.__init__(self, defPort + conPort, Control)
-
-    def run(self) -> None:
-        ImageFile.LOAD_TRUNCATED_IMAGES = True
-        if not os.path.isdir(mem):
-            os.mkdir(mem)
-        if not os.path.isdir(dTemp):
-            os.mkdir(dTemp)
-        else:
-            for d in os.listdir(dTemp):
-                os.remove(os.path.join(dTemp, d))
-        Server.run(self)
-
-    @staticmethod
-    def killAll(yourself: bool = False) -> sp.Popen:
-        killer = sp.Popen(os.path.join(root(), "com", "kill.bat"), shell=True)
-        if yourself:
-            killer.wait()
-            os.kill(os.getpid(), SIGTERM)
-        return killer
-
-
-defPort, conPort, visPort, earPort = 3772, 0, 1, 2
+defPort, conPort, visPort, audPort = 3772, 0, 1, 2
 mem = os.path.join(root(), "mem")
 aTemp = os.path.join(dTemp, "audio" + aExt)
 vision: Optional[Server] = None
