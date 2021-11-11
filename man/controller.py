@@ -1,23 +1,26 @@
-import os, os.path
+import json
+import os
+import os.path
+import subprocess as sp
 from signal import SIGTERM
 from socketserver import BaseRequestHandler
-import subprocess as sp
 from time import sleep
-from typing import Optional
+from typing import Dict
 
-from PIL import ImageFile
 import numpy as np
 import soundfile as sf
+from PIL import ImageFile
 
-from man.receiver import AudioHandler, ImageHandler, aExt, dTemp, pExt, root, sample_rate
+from man.receiver import aExt, dTemp, handlers, pExt, root, sample_rate
 from man.server import Server
 
 
 class Controller(Server):
     def __init__(self):
-        Server.__init__(self, defPort + conPort, ControlHandler)
+        Server.__init__(self, 3772, ControlHandler)
 
     def run(self) -> None:
+        # Truncate the TMP folder
         ImageFile.LOAD_TRUNCATED_IMAGES = True
         if not os.path.isdir(mem):
             os.mkdir(mem)
@@ -26,6 +29,16 @@ class Controller(Server):
         else:
             for d in os.listdir(dTemp):
                 os.remove(os.path.join(dTemp, d))
+
+        # Create DEV file
+        global dev, devPath
+        if not os.path.isfile(devPath):
+            with open(devPath, "w") as f:
+                f.write(json.dumps(dev))
+        else:
+            with open(devPath, "r") as f:
+                dev = json.loads(f.read())
+
         Server.run(self)
 
     @staticmethod
@@ -36,50 +49,56 @@ class Controller(Server):
             os.kill(os.getpid(), SIGTERM)
         return killer
 
+    @staticmethod
+    def updateDev():
+        with open(devPath, "w") as f:
+            f.write(json.dumps(dev))
+
 
 class ControlHandler(BaseRequestHandler):
     def handle(self):  # self.client_address[0]
         note = str(self.request.recv(1024))[2:-1]
-        if note == "start":
-            see()
-            hear()
+        if note.startswith("ackn"):
+            if len(dev.keys()) > 0:
+                maxKey = 0
+                for k in dev.keys():
+                    if int(k) > maxKey:
+                        maxKey = k
+                newId = str(maxKey + 1)
+            else:
+                newId = "1"
+            dev[newId] = json.loads(note[4:])
+            Controller.updateDev()
+            self.request.sendall(newId.encode())
+        elif note.startswith("init"):
+            deviceId = note[4:]
+            if deviceId in dev:
+                respond = "true"
+                deviceReceivers = list()
+                for sense in dev[deviceId]["sensors"]:
+                    rec = Server(0, handlers[sense])
+                    rec.start()
+                    rec.check(True)
+                    respond += str(rec.port) + ","
+                    deviceReceivers.append(rec)
+                receivers[deviceId] = deviceReceivers
+                respond = respond[:-1].encode()
+            else:
+                respond = b"false"
             sleep(1)
-            self.request.sendall(b"true")
-        elif note == "stop":
-            see(False)
-            hear(False)
+            self.request.sendall(respond)
+        elif note == "halt":
+            deviceId = note[4:]
+            if deviceId in dev:
+                for rec in receivers[deviceId]:
+                    if rec.server is not None:
+                        rec.server.shutdown()
+                    rec.kill()
+                receivers.pop(deviceId)
+            if len(receivers.keys()) == 0:
+                extract()
         elif note == "kill":
             Controller.killAll(True)
-
-
-def see(b=True) -> None:
-    global vision, hearing
-    if b:
-        if vision is not None: return
-        vision = Server(defPort + visPort, ImageHandler)
-        vision.start()
-        vision.check()
-    elif vision is not None:
-        if vision.server is not None:
-            vision.server.shutdown()
-        vision.kill()
-        vision = None
-        if hearing is None: extract()
-
-
-def hear(b=True) -> None:
-    global vision, hearing
-    if b:
-        if hearing is not None: return
-        hearing = Server(defPort + audPort, AudioHandler)
-        hearing.start()
-        hearing.check()
-    elif hearing is not None:
-        if hearing.server is not None:
-            hearing.server.shutdown()
-        hearing.kill()
-        hearing = None
-        if vision is None: extract()
 
 
 def extract():
@@ -99,8 +118,7 @@ def extract():
     sf.write(aTemp, data, sample_rate)
 
 
-defPort, conPort, visPort, audPort = 3772, 0, 1, 2
 mem = os.path.join(root(), "mem")
 aTemp = os.path.join(dTemp, "audio" + aExt)
-vision: Optional[Server] = None
-hearing: Optional[Server] = None
+dev, devPath = {}, os.path.join(root(), "man", "dev.json")
+receivers: Dict = dict()

@@ -28,10 +28,12 @@ class Server(Process):
         Process.kill(self)
         self.check()
 
-    def check(self, echo: bool = True) -> None:
+    def check(self, random: bool = False, echo: bool = True) -> None:
         s = socket(AF_INET, SOCK_STREAM)
         try:
             s.bind((self.host, self.port))
+            if random:
+                self.port = s.getsockname()[1]
             if echo:
                 if not self.active:
                     print("BEGAN LISTENING AT", self.host + ":" + str(self.port))
