@@ -18,6 +18,7 @@ class Server(Process):
         self.active = False
 
     def run(self) -> None:
+        Process.run(self)
         self.server = TCPServer((self.host, self.port), self.handler)
         try:
             self.server.serve_forever()
@@ -28,17 +29,17 @@ class Server(Process):
         Process.kill(self)
         self.check()
 
-    def check(self, random: bool = False, echo: bool = True) -> None:
+    def check(self, echo: bool = True) -> None:
         s = socket(AF_INET, SOCK_STREAM)
         try:
             s.bind((self.host, self.port))
-            if random:
+            if self.port == 0:
                 self.port = s.getsockname()[1]
             if echo:
                 if not self.active:
                     print("BEGAN LISTENING AT", self.host + ":" + str(self.port))
                 else:
-                    print("PORT", self.port, "ALREADY IN USE!")
+                    print("PORT", self.port, "ALREADY IN USE! (ACTIVE)")
             self.active = True
         except error as e:
             if echo:
@@ -46,7 +47,7 @@ class Server(Process):
                     print("ENDED LISTENING AT", self.host + ":" + str(self.port))
                 else:
                     if e.errno == errno.EADDRINUSE:
-                        print("PORT", self.port, "ALREADY IN USE!")
+                        print("PORT", self.port, "ALREADY IN USE! (INACTIVE)")
                     else:
                         print(e)
             self.active = False

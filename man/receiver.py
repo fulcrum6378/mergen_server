@@ -64,15 +64,20 @@ def root():
     return r
 
 
+def handlers(sense: str):
+    match sense:
+        case "aud":
+            return AudHandler
+        case "toc":
+            return TocHandler
+        case "vis":
+            return VisHandler
+
+
 class ManException(Exception):
     pass
 
 
-handlers = {
-    "aud": AudHandler,
-    "toc": TocHandler,
-    "vis": VisHandler
-}
 iTime = aTime = 0
 dTemp = os.path.join(root(), "mem", "tmp")
 sample_rate, aExt, pExt = 44100, ".wav", ".jpg"

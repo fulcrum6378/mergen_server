@@ -57,7 +57,8 @@ class Controller(Server):
 
 class ControlHandler(BaseRequestHandler):
     def handle(self):  # self.client_address[0]
-        note = str(self.request.recv(1024))[2:-1]
+        note = str(self.request.recv(102400))[2:-1]  # 100KB
+        print(note)
         if note.startswith("ackn"):
             if len(dev.keys()) > 0:
                 maxKey = 0
@@ -76,9 +77,9 @@ class ControlHandler(BaseRequestHandler):
                 respond = "true"
                 deviceReceivers = list()
                 for sense in dev[deviceId]["sensors"]:
-                    rec = Server(0, handlers[sense])
+                    rec = Server(0, handlers(sense))
                     rec.start()
-                    rec.check(True)
+                    rec.check()
                     respond += str(rec.port) + ","
                     deviceReceivers.append(rec)
                 receivers[deviceId] = deviceReceivers
@@ -87,12 +88,10 @@ class ControlHandler(BaseRequestHandler):
                 respond = b"false"
             sleep(1)
             self.request.sendall(respond)
-        elif note == "halt":
+        elif note.startswith("halt"):
             deviceId = note[4:]
             if deviceId in dev:
                 for rec in receivers[deviceId]:
-                    if rec.server is not None:
-                        rec.server.shutdown()
                     rec.kill()
                 receivers.pop(deviceId)
             if len(receivers.keys()) == 0:
