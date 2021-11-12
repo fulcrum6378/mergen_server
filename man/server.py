@@ -33,8 +33,6 @@ class Server(Process):
         s = socket(AF_INET, SOCK_STREAM)
         try:
             s.bind((self.host, self.port))
-            if self.port == 0:
-                self.port = s.getsockname()[1]
             if echo:
                 if not self.active:
                     print("BEGAN LISTENING AT", self.host + ":" + str(self.port))

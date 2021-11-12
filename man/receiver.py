@@ -64,16 +64,6 @@ def root():
     return r
 
 
-def handlers(sense: str):
-    match sense:
-        case "aud":
-            return AudHandler
-        case "toc":
-            return TocHandler
-        case "vis":
-            return VisHandler
-
-
 class ManException(Exception):
     pass
 

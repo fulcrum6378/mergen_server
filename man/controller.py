@@ -11,7 +11,7 @@ import numpy as np
 import soundfile as sf
 from PIL import ImageFile
 
-from man.receiver import aExt, dTemp, handlers, pExt, root, sample_rate
+from man.receiver import AudHandler, ManException, TocHandler, VisHandler, aExt, dTemp, pExt, root, sample_rate
 from man.server import Server
 
 
@@ -58,7 +58,6 @@ class Controller(Server):
 class ControlHandler(BaseRequestHandler):
     def handle(self):  # self.client_address[0]
         note = str(self.request.recv(102400))[2:-1]  # 100KB
-        print(note)
         if note.startswith("ackn"):
             if len(dev.keys()) > 0:
                 maxKey = 0
@@ -72,12 +71,23 @@ class ControlHandler(BaseRequestHandler):
             Controller.updateDev()
             self.request.sendall(newId.encode())
         elif note.startswith("init"):
+            global nextServer
             deviceId = note[4:]
             if deviceId in dev:
                 respond = "true"
                 deviceReceivers = list()
                 for sense in dev[deviceId]["sensors"]:
-                    rec = Server(0, handlers(sense))
+                    match sense["type"]:
+                        case "aud":
+                            h = AudHandler
+                        case "toc":
+                            h = TocHandler
+                        case "vis":
+                            h = VisHandler
+                        case _:
+                            raise ManException("Unsupported sense: " + str(sense))
+                    rec = Server(nextServer, h)
+                    nextServer += 1
                     rec.start()
                     rec.check()
                     respond += str(rec.port) + ","
@@ -121,3 +131,4 @@ mem = os.path.join(root(), "mem")
 aTemp = os.path.join(dTemp, "audio" + aExt)
 dev, devPath = {}, os.path.join(root(), "man", "dev.json")
 receivers: Dict = dict()
+nextServer = 3773
