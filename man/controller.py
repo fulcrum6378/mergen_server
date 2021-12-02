@@ -7,11 +7,9 @@ from socketserver import BaseRequestHandler
 from time import sleep
 from typing import Dict
 
-import numpy as np
-import soundfile as sf
 from PIL import ImageFile
 
-from man.receiver import AudHandler, ManException, TocHandler, VisHandler, aExt, dTemp, vExt, root, sample_rate
+from man.receiver import AudHandler, ManException, TocHandler, VisHandler, dTemp, vExt, root
 from man.server import Server
 
 
@@ -111,27 +109,14 @@ class ControlHandler(BaseRequestHandler):
 
 
 def extract():
-    aud, vis = list(), list()
+    vis = list()
     for i in os.listdir(dTemp):
-        if i.endswith(aExt):
-            aud.append(os.path.join(dTemp, i))
-        elif i.endswith(vExt):
+        if i.endswith(vExt):
             vis.append(os.path.join(dTemp, i))
-    aud.sort()
     vis.sort()
-    if len(aud) == 0 and len(vis) == 0: return
-    data = bytearray()
-    for w in aud:
-        with open(w, "rb") as f:
-            data += f.read()  # np.concatenate((data, sf.read(w)[0]))
-        # os.remove(w)
-    # sf.write(aTemp, data, sample_rate)
-    with open(aTemp, "wb") as f:
-        f.write(data)
 
 
 mem = os.path.join(root(), "mem")
-aTemp = os.path.join(dTemp, "audio" + aExt)
 dev, devPath = {}, os.path.join(root(), "man", "dev.json")
 receivers: Dict = dict()
 nextServer = 3773

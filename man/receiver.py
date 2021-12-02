@@ -1,6 +1,5 @@
 import os
 import os.path
-import wave
 from socketserver import StreamRequestHandler
 from traceback import format_tb
 
@@ -16,13 +15,9 @@ class AudHandler(StreamRequestHandler):
                 package = self.request.recv(1073741824)
                 if not package: break
                 data += package
-            global sample_rate, aTime, dTemp
-            last_time = str(aTime)
-            fTemp = os.path.join(dTemp, last_time + aExt)
-            with wave.open(fTemp, 'wb') as f:
-                f.setparams((1, 2, sample_rate, 0, 'NONE', 'NONE'))
-                f.writeframes(data)
-            aTime += 1
+            global aTemp
+            with open(aTemp, "ab") as f:
+                f.write(data)
         except Exception as e:
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
@@ -46,10 +41,10 @@ class VisHandler(StreamRequestHandler):
                 package = self.request.recv(10485760)
                 if not package: break
                 data += package
-            global dTemp, iTime
-            with open(os.path.join(dTemp, str(iTime) + vExt), "wb") as f:
+            global dTemp, vTime
+            with open(os.path.join(dTemp, str(vTime) + vExt), "wb") as f:
                 f.write(data)
-            iTime += 1
+            vTime += 1
         except Exception as e:
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
@@ -68,6 +63,7 @@ class ManException(Exception):
     pass
 
 
-iTime = aTime = 0
+vTime = 0
 dTemp = os.path.join(root(), "mem", "tmp")
-sample_rate, aExt, vExt = 44100, ".pcm", ".jpg"
+aTemp = os.path.join(dTemp, "audio.pcm")
+sample_rate, vExt = 44100, ".jpg"
