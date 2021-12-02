@@ -11,7 +11,7 @@ import numpy as np
 import soundfile as sf
 from PIL import ImageFile
 
-from man.receiver import AudHandler, ManException, TocHandler, VisHandler, aExt, dTemp, pExt, root, sample_rate
+from man.receiver import AudHandler, ManException, TocHandler, VisHandler, aExt, dTemp, vExt, root, sample_rate
 from man.server import Server
 
 
@@ -63,7 +63,7 @@ class ControlHandler(BaseRequestHandler):
                 maxKey = 0
                 for k in dev.keys():
                     if int(k) > maxKey:
-                        maxKey = k
+                        maxKey = int(k)
                 newId = str(maxKey + 1)
             else:
                 newId = "1"
@@ -100,7 +100,7 @@ class ControlHandler(BaseRequestHandler):
             self.request.sendall(respond)
         elif note.startswith("halt"):
             deviceId = note[4:]
-            if deviceId in dev:
+            if deviceId in dev.keys():
                 for rec in receivers[deviceId]:
                     rec.kill()
                 receivers.pop(deviceId)
@@ -115,16 +115,19 @@ def extract():
     for i in os.listdir(dTemp):
         if i.endswith(aExt):
             aud.append(os.path.join(dTemp, i))
-        elif i.endswith(pExt):
+        elif i.endswith(vExt):
             vis.append(os.path.join(dTemp, i))
     aud.sort()
     vis.sort()
-    if len(aud) == 0 or len(vis) == 0: return
-    data = np.array([])
+    if len(aud) == 0 and len(vis) == 0: return
+    data = bytearray()
     for w in aud:
-        data = np.concatenate((data, sf.read(w)[0]))
+        with open(w, "rb") as f:
+            data += f.read()  # np.concatenate((data, sf.read(w)[0]))
         # os.remove(w)
-    sf.write(aTemp, data, sample_rate)
+    # sf.write(aTemp, data, sample_rate)
+    with open(aTemp, "wb") as f:
+        f.write(data)
 
 
 mem = os.path.join(root(), "mem")

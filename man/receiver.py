@@ -47,7 +47,7 @@ class VisHandler(StreamRequestHandler):
                 if not package: break
                 data += package
             global dTemp, iTime
-            with open(os.path.join(dTemp, str(iTime) + pExt), "wb") as f:
+            with open(os.path.join(dTemp, str(iTime) + vExt), "wb") as f:
                 f.write(data)
             iTime += 1
         except Exception as e:
@@ -70,4 +70,4 @@ class ManException(Exception):
 
 iTime = aTime = 0
 dTemp = os.path.join(root(), "mem", "tmp")
-sample_rate, aExt, pExt = 44100, ".wav", ".jpg"
+sample_rate, aExt, vExt = 44100, ".pcm", ".jpg"
