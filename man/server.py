@@ -6,7 +6,7 @@ from typing import Optional, Type
 
 
 class Server(Process):
-    def __init__(self, port: int, handler: Type[BaseRequestHandler]):
+    def __init__(self, port: int, handler: Type[BaseRequestHandler], sense_type: str = None):
         Process.__init__(self)
         with socket(AF_INET, SOCK_DGRAM) as s:
             s.connect(("8.8.8.8", 80))
@@ -15,6 +15,7 @@ class Server(Process):
         self.port: int = port
         self.server: Optional[TCPServer] = None
         self.handler: Type[BaseRequestHandler] = handler
+        self.sense_type = sense_type
         self.active = False
 
     def run(self) -> None:
@@ -30,22 +31,23 @@ class Server(Process):
         self.check()
 
     def check(self, echo: bool = True) -> None:
+        senseIndicator = (" for " + self.sense_type).upper() if self.sense_type is not None else ""
         s = socket(AF_INET, SOCK_STREAM)
         try:
             s.bind((self.host, self.port))
             if echo:
                 if not self.active:
-                    print("BEGAN LISTENING AT", self.host + ":" + str(self.port))
+                    print("BEGAN LISTENING AT", self.host + ":" + str(self.port) + senseIndicator)
                 else:
-                    print("PORT", self.port, "ALREADY IN USE! (ACTIVE)")
+                    print("PORT", self.port, "ALREADY IN USE! (ACTIVE)" + senseIndicator)
             self.active = True
         except error as e:
             if echo:
                 if self.active:
-                    print("ENDED LISTENING AT", self.host + ":" + str(self.port))
+                    print("ENDED LISTENING AT", self.host + ":" + str(self.port) + senseIndicator)
                 else:
                     if e.errno == errno.EADDRINUSE:
-                        print("PORT", self.port, "ALREADY IN USE! (INACTIVE)")
+                        print("PORT", self.port, "ALREADY IN USE! (INACTIVE)" + senseIndicator)
                     else:
                         print(e)
             self.active = False

@@ -84,7 +84,7 @@ class ControlHandler(BaseRequestHandler):
                             h = VisHandler
                         case _:
                             raise ManException("Unsupported sense: " + str(sense))
-                    rec = Server(nextServer, h)
+                    rec = Server(nextServer, h, sense["type"])
                     nextServer += 1
                     rec.start()
                     rec.check()
