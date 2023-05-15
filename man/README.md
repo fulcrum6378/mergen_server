@@ -1,1 +1,3 @@
-<b>Mergen's MAN section</b>
+### Mergen's MAN Section
+
+Receives data from clients.

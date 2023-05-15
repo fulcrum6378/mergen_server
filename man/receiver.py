@@ -52,9 +52,9 @@ class VisHandler(StreamRequestHandler):
 def root():
     r = os.path.dirname(__file__)
     for _ in range(5):
-        if os.path.basename(r) != "mergen":
+        if os.path.basename(r) != "MergenServer":
             r = os.path.dirname(r)
-    if os.path.basename(r) != "mergen":
+    if os.path.basename(r) != "MergenServer":
         raise ManException("Can't find the root folder!")
     return r
 
