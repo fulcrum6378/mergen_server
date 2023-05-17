@@ -1,1 +1,3 @@
-<b>Mergen's VIS section</b>
+### Mergen's VIS section
+
+Processes visionary input and output.

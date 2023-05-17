@@ -22,7 +22,7 @@ class AudHandler(StreamRequestHandler):
             print(str(e.__class__)[8:-2] + ": " + str(e) + "\n" + ''.join(format_tb(e.__traceback__)))
 
 
-class TocHandler(StreamRequestHandler):
+class HptHandler(StreamRequestHandler):
     def handle(self):
         try:
             package = self.request.recv(10485760)  # 10MB: maximum bytes downloadable

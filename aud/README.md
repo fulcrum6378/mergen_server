@@ -1,1 +1,3 @@
-<b>Mergen's AUD section</b>
+### Mergen's AUD section
+
+Processes auditory input and output.

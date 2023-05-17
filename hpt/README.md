@@ -1,1 +1,3 @@
-<b>Mergen's TOC section</b>
+### Mergen's HPT section
+
+Processes haptic (touch) input.

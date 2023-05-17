@@ -9,7 +9,7 @@ from typing import Dict
 
 from PIL import ImageFile
 
-from man.receiver import AudHandler, ManException, TocHandler, VisHandler, dTemp, vExt, root
+from man.receiver import AudHandler, ManException, HptHandler, VisHandler, dTemp, vExt, root
 from man.server import Server
 
 
@@ -78,8 +78,8 @@ class ControlHandler(BaseRequestHandler):
                     match sense["type"]:
                         case "aud":
                             h = AudHandler
-                        case "toc":
-                            h = TocHandler
+                        case "hpt":
+                            h = HptHandler
                         case "vis":
                             h = VisHandler
                         case _:
