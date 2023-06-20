@@ -1,6 +1,5 @@
 import json
 import os
-import os.path
 import subprocess as sp
 from signal import SIGTERM
 from socketserver import BaseRequestHandler
@@ -40,12 +39,16 @@ class Controller(Server):
         Server.run(self)
 
     @staticmethod
-    def killAll(yourself: bool = False) -> sp.Popen:
-        killer = sp.Popen(os.path.join(root(), "man", "kill.bat"), shell=True)
-        if yourself:
-            killer.wait()
-            os.kill(os.getpid(), SIGTERM)
-        return killer
+    def killAll(yourself: bool = False):
+        if os.name == 'posix':
+            os.system("killall python")
+        elif os.name == 'nt':
+            killer = sp.Popen(os.path.join(root(), "man", "kill.bat"), shell=True)
+            if yourself:
+                killer.wait()
+                os.kill(os.getpid(), SIGTERM)
+        else:
+            print("Could not kill all the processes. Unsupported operating system!")
 
     @staticmethod
     def updateDev():
@@ -75,15 +78,15 @@ class ControlHandler(BaseRequestHandler):
                 respond = "true"
                 deviceReceivers = list()
                 for sense in dev[deviceId]["sensors"]:
-                    match sense["type"]:
-                        case "aud":
-                            h = AudHandler
-                        case "hpt":
-                            h = HptHandler
-                        case "vis":
-                            h = VisHandler
-                        case _:
-                            raise ManException("Unsupported sense: " + str(sense))
+                    st = sense["type"]
+                    if st == "aud":
+                        h = AudHandler
+                    elif st == "hpt":
+                        h = HptHandler
+                    elif st == "vis":
+                        h = VisHandler
+                    else:
+                        raise ManException("Unsupported sense: " + str(sense))
                     rec = Server(nextServer, h, sense["type"])
                     nextServer += 1
                     rec.start()
